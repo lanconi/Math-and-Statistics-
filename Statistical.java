@@ -13,10 +13,21 @@ import java.util.HashSet;
  * utility methods for performing statistical calculations.<br>
  * The statistical calculations provided are:<br>
  * mean<br>
+ * trimmed mean<br>
  * median<br>
  * standard of deviation<br>
  * coefficient of variation<br>
  * variance<br>
+ * <p>
+ * To use this class, simply instantiate a Statistical Object with a set
+ * of data and then call any of the methods that performs the desired calculation.<br>
+ * The original data set is not mutated and the Statistical Object can be 
+ * acted upon infinite number of times and its internal data set will not be 
+ * mutated.<br>
+ * Example:<p>
+ * {@code double[] arr = new double[] { 1.0, 4.0, 6.0, 9.0, 23.0 };}<br>
+ * {@code Statistical stat = new Statistical(arr); }<br>
+ * {@code double mean = stat.mean(); }
  * <p>
  *  For your convenience, the constructor has been overloaded to accommodate 
  *  four different parameter types, as follows:<br>
@@ -26,8 +37,7 @@ import java.util.HashSet;
  *  	{@code Set<Double> }	<p>
  *  Internally, there are three methods used to convert the
  *  Collection types with generic indicator, into a double[], which is 
- *  the sole field of this Object.<br>
- *  convertXXXtoToPrimitiveArray<p>
+ *  the sole field of this class.<p>
  * @author Lance Dooley, Robotic Systems Design (rsd)
  * @since 2017
  *
@@ -36,6 +46,10 @@ public final class Statistical
 {
 	private double[] data;
 	
+	/**
+	 * Constructor for a Statistical data set of type double[].
+	 * @param data a double[]
+	 */
 	public Statistical(double[] data)
 	{
 		if( data == null )
@@ -48,9 +62,17 @@ public final class Statistical
 		{
 			arr[i] = data[i];
 		}
+		
+		// sort the array
+		Arrays.sort(arr);
+		
 		this.data = arr;
 	}
 	
+	/**
+	 * Constructor for a Statistical data set of type Double[].
+	 * @param data of type Double[]
+	 */
 	public Statistical(Double[] data)
 	{
 		if( data == null )
@@ -59,6 +81,10 @@ public final class Statistical
 		this.data = convertDoubleArrayToPrimitiveArray(data);
 	}
 	
+	/**
+	 * Constructor for a Statistical data set of type {@code List<Double>}.
+	 * @param list of type {@code List<Double>}
+	 */
 	public Statistical(List<Double> list)
 	{
 		if( list == null )
@@ -67,6 +93,10 @@ public final class Statistical
 		this.data = convertListDoubleToPrimitiveArray(list);
 	}
 	
+	/**
+	 * Constructor for a Statistical data set of type {@code Set<Double>}.
+	 * @param set of type {@code Set<Double>}
+	 */
 	public Statistical(Set<Double> set)
 	{
 		if( set == null )
@@ -76,10 +106,9 @@ public final class Statistical
 	}
 	
 	/**
-	 * Returns the mean value  x&#x0304.<br>
+	 * Returns the mean value x&#x0304.<br>
 	 * The mean is simply the average; sum of all elements, 
 	 * divided by number of elements.<br>
-	 * @param data of type double[]
 	 * @return double
 	 */
 	public double mean()
@@ -93,10 +122,34 @@ public final class Statistical
 		return sum/data.length;
 	}
 	
+	/**
+	 * Returns the mean value x&#x0304 of a data set, with p number of
+	 * elements removed from the lowest and highest end.<br>
+	 * If the total number of elements to be trimmed is greater than or equal to the length
+	 * of the data set, then an IllegalArgumentException is thrown.
+	 * @param p the number of elements to be trimmed from both the lower and upper end
+	 * of the data set.
+	 * @param p an int representing the number of elements to trip off lower and upper end
+	 * of data set.
+	 * @return double
+	 */
+	public double trimmedMean(int p)
+	{
+		if( 2*p >= data.length  )
+			throw new IllegalArgumentException("null Set passed to Statistical");
+		
+		double sum = 0.0d;
+		for( int i = p; i < data.length-p; i++ )
+		{
+			sum += data[i];
+		}
+		
+		return sum/(data.length - 2*p);
+	}
+	
 	
 	/**
 	 * Returns the median value, which is the 50th percentile.<br>
-	 * @param data of type double[]
 	 * @return double
 	 */
 	public double median()
@@ -134,7 +187,6 @@ public final class Statistical
 	 * In probability theory and statistics, variance is the expectation of the 
 	 * squared deviation of a random variable from its mean, and it informally 
 	 * measures how far a set of (random) numbers are spread out from their mean.
-	 * @param data of type double[]
 	 * @return double
 	 */
 	public double variance()
@@ -169,7 +221,6 @@ public final class Statistical
  	 * the mean (also called the expected value) of the set, while a high 
  	 * standard deviation indicates that the data points are spread out over a 
  	 * wider range of values.
-	 * @param data of type double[]
 	 * @return double
 	 */
 	public double standardDeviation()
@@ -191,7 +242,6 @@ public final class Statistical
 	 * It is often expressed as a percentage, and is defined as the ratio of the 
 	 * standard deviation &sigma; to the mean &#181.
 	 * 
-	 * @param data of type double[]
 	 * @return double
 	 */
 	public double coefficientOfVariation()
@@ -212,14 +262,16 @@ public final class Statistical
 								"null List passed to convertDoublArrayToPrimitive");
 		
 		// conver the List to an array
-		double[] arrayPrimitive = new double[array.length];
+		double[] arr = new double[array.length];
 		
 		for( int i = 0; i < array.length; i++ )
 		{
-			arrayPrimitive[i] = array[i];
+			arr[i] = array[i];
 		}
 		
-		return arrayPrimitive;
+		Arrays.sort(arr);
+
+		return arr;
 	}
 	
 	
@@ -243,6 +295,8 @@ public final class Statistical
 			arr[i] = list.get(i);
 		}
 		
+		Arrays.sort(arr);
+		
 		return arr;
 	}
 	
@@ -259,24 +313,23 @@ public final class Statistical
 					"null Set passed to convertSetDoubleToPrimitiveArray");
 		
 		// convert the Set<Double> to Double[]
-		Double[] doubleArray = set.toArray(new Double[1]);
+		Double[] arr = set.toArray(new Double[1]);
 		
-		// conver the List to an array
-		double[] arr = new double[doubleArray.length];
+		// create a primitive double[] of same length as Double[], above.
+		double[] arrPrimitive = new double[arr.length];
 		
-		for( int i = 0; i < doubleArray.length; i++ )
+		for( int i = 0; i < arr.length; i++ )
 		{
-			arr[i] = doubleArray[i];
+			arrPrimitive[i] = arr[i];
 		}
 		
-		return arr;
+		return arrPrimitive;
 	}
 	
 	
 	/**
 	 * Returns the range.<br>
 	 * The range is the difference between the largest and smallest value.
-	 * @param data of type double[]
 	 * @return double
 	 */
 	public double range()
@@ -295,6 +348,13 @@ public final class Statistical
 		return max - min;
 	}
 	
+	/**
+	 * Returns a String representation of the data set in a csv array enclosed
+	 * with hard brackets.<br>
+	 * Example:<br>
+	 * {@code [3,5,8.9,14.45,28.00,40.2]}
+	 * @return String
+	 */
 	public String toString()
 	{
 		StringBuffer sb = new StringBuffer("[");
@@ -323,7 +383,7 @@ public final class Statistical
 	// as needed to run test cases.
 	public static void main(String[] args)
 	{
-		double[] data1 =  { 1.0, 4.0, 6.0, 19.0 };
+		double[] data1 =  { 1.0, 4.0, 6.0, 19.0, 34 };
 		Double[] data2 =  { 1.0, 4.0, 8.0, 6.0, 14.0, 3.0, 19.0, 20.0 };
 		
 		List<Double> list = new ArrayList<>();
@@ -342,6 +402,7 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat1.toString() );
 		System.out.println("range: " 	+ 			stat1.range() );
 		System.out.println("mean: " 	+ 			stat1.mean() );
+		System.out.println("trimmed mean(2): " 	+ 	stat1.trimmedMean(2) );
 		System.out.println("median: " 	+ 			stat1.median() );
 		System.out.println("standard deviation: " + stat1.standardDeviation() );
 		System.out.println("coeff of variation: " + stat1.coefficientOfVariation() );
@@ -352,6 +413,7 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat2.toString() );
 		System.out.println("range: " 	+ 			stat2.range() );
 		System.out.println("mean: " 	+ 			stat2.mean() );
+		System.out.println("trimmed mean(2): " 	+ 	stat2.trimmedMean(2) );
 		System.out.println("median: " 	+ 			stat2.median() );
 		System.out.println("standard deviation: " + stat2.standardDeviation() );
 		System.out.println("coeff of variation: " + stat2.coefficientOfVariation() );
@@ -362,6 +424,7 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat3.toString() );
 		System.out.println("range: " 	+ 			stat3.range() );
 		System.out.println("mean: " 	+ 			stat3.mean() );
+		System.out.println("trimmed mean(2): " 	+ 	stat3.trimmedMean(2) );
 		System.out.println("median: " 	+ 			stat3.median() );
 		System.out.println("standard deviation: " + stat3.standardDeviation() );
 		System.out.println("coeff of variation: " + stat3.coefficientOfVariation() );
@@ -372,6 +435,7 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat4.toString() );
 		System.out.println("range: " 	+ 			stat4.range() );
 		System.out.println("mean: " 	+ 			stat4.mean() );
+		System.out.println("trimmed mean(2): " 	+ 	stat4.trimmedMean(2) );
 		System.out.println("median: " 	+ 			stat4.median() );
 		System.out.println("standard deviation: " + stat4.standardDeviation() );
 		System.out.println("coeff of variation: " + stat4.coefficientOfVariation() );
