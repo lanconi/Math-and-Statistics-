@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  * Statistical is an Object Oriented Class
@@ -28,8 +27,7 @@ import java.util.Iterator;
  *  Internally, there are three methods used to convert the
  *  Collection types with generic indicator, into a double[], which is 
  *  the sole field of this Object.<br>
- *  convertXXXtoToPrimitiveArray<br>
- *  For any questions or problems, please email: lance@lancedooley.com<br>
+ *  convertXXXtoToPrimitiveArray<p>
  * @author Lance Dooley, Robotic Systems Design (rsd)
  * @since 2017
  *
@@ -41,12 +39,10 @@ public final class Statistical
 	public Statistical(double[] data)
 	{
 		if( data == null )
-			throw new IllegalArgumentException("null array passed to Statistics");
+			throw new IllegalArgumentException("null array passed to Statistical");
 		
-		// create a new double[] and fill it with the 
-		// double primitives in the double[]
-		// There will be no dependancy on the old array or risk
-		// of altering original array
+		// create a new double[] and fill it with the double primitives 
+		// There will be no dependency or risk original array
 		double[] arr = new double[data.length];		
 		for( int i = 0; i < data.length; i++ )
 		{
@@ -58,7 +54,7 @@ public final class Statistical
 	public Statistical(Double[] data)
 	{
 		if( data == null )
-			throw new IllegalArgumentException("null array passed to Statistics");
+			throw new IllegalArgumentException("null array passed to Statistical");
 		
 		this.data = convertDoubleArrayToPrimitiveArray(data);
 	}
@@ -66,8 +62,7 @@ public final class Statistical
 	public Statistical(List<Double> list)
 	{
 		if( list == null )
-			throw new IllegalArgumentException(
-					"null List passed to convertListDoubleToPrimitiveArray");
+			throw new IllegalArgumentException("null List passed to Statistical");
 		
 		this.data = convertListDoubleToPrimitiveArray(list);
 	}
@@ -75,8 +70,7 @@ public final class Statistical
 	public Statistical(Set<Double> set)
 	{
 		if( set == null )
-			throw new IllegalArgumentException(
-					"null Set passed to Statistics");
+			throw new IllegalArgumentException("null Set passed to Statistical");
 		
 		this.data = convertSetDoubleToPrimitiveArray(set);
 	}
