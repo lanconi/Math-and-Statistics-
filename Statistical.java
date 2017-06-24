@@ -23,8 +23,8 @@ import java.util.HashSet;
  * of data and then call any of the methods that performs the desired calculation.<br>
  * The original data set is not mutated and the Statistical Object can be 
  * acted upon infinite number of times and its internal data set will not be 
- * mutated.<br>
- * Example:<p>
+ * mutated.<p>
+ * Example:<br>
  * {@code double[] arr = new double[] { 1.0, 4.0, 6.0, 9.0, 23.0 };}<br>
  * {@code Statistical stat = new Statistical(arr); }<br>
  * {@code double mean = stat.mean(); }
@@ -123,33 +123,64 @@ public final class Statistical
 	}
 	
 	/**
-	 * Returns the mean value x&#x0304 of a data set, with p number of
+	 * Returns the mean value x&#x0304 of a data set, with n number of
 	 * elements removed from the lowest and highest end.<br>
 	 * If the total number of elements to be trimmed is greater than or equal to the length
-	 * of the data set, then an IllegalArgumentException is thrown.
-	 * @param p the number of elements to be trimmed from both the lower and upper end
+	 * of the data set, then an IllegalArgumentException is thrown.<br>
+	 * Note that calling this method with a float or double argument, will call the overloaded
+	 * version that takes double as an argument, and you will be asking to trim by percentage,
+	 * instead of by number of elements.
+	 * @param n the number of elements to be trimmed from both the lower and upper end
 	 * of the data set.
-	 * @param p an int representing the number of elements to trip off lower and upper end
-	 * of data set.
 	 * @return double
 	 */
-	public double trimmedMean(int p)
+	public double trimmedMean(int n)
 	{
-		if( 2*p >= data.length  )
+		if( 2*n >= data.length  )
 			throw new IllegalArgumentException("null Set passed to Statistical");
 		
 		double sum = 0.0d;
-		for( int i = p; i < data.length-p; i++ )
+		for( int i = n; i < data.length-n; i++ )
 		{
 			sum += data[i];
 		}
 		
-		return sum/(data.length - 2*p);
+		return sum/(data.length - 2*n);
+	}
+	
+	/**
+	 * Returns the mean value x&#x0304 of a data set, with p percentage of
+	 * elements removed from the lower and upper end of the data set.<br>
+	 * If the percentage of elements to be trimmed is greater than 49%, 
+	 * then 49% will be used. This is because trimming more than
+	 * 49% of the data from the bottom and the top would leave no data to evaluate.<br>
+	 * Example: to trim 14 percent of the data elements from the lower and upper end of the
+	 * data set, a valid call would look like this ...<br>
+	 * {@code stat.trimmedMean(0.14);}<br>
+	 * where <b>stat</b> is an instantiated object of this class with a valid data set.<p> 
+	 * Note that calling this method with an integer argument, will call the overloaded
+	 * version that takes int as an argument.
+	 * @param p the percentage of elements to be trimmed from both the lower and upper end
+	 * of the data set, expressed as a double between 0.0 and 0.49.<br>
+	 * Example: Using 0.14 would mean 14%.
+	 * @return double
+	 */
+	public double trimmedMean(double p)
+	{
+		if( p <= 0.0d )
+			return trimmedMean(0);
+		
+		if( p > 0.49d  )
+			p = 0.49d;
+		
+	    int trim = (int)(data.length * p);
+	    
+	    return trimmedMean(trim);
 	}
 	
 	
 	/**
-	 * Returns the median value, which is the 50th percentile.<br>
+	 * Returns the median value, which is the same as the 50th percentile.<br>
 	 * @return double
 	 */
 	public double median()
@@ -323,6 +354,8 @@ public final class Statistical
 			arrPrimitive[i] = arr[i];
 		}
 		
+		Arrays.sort(arrPrimitive);
+		
 		return arrPrimitive;
 	}
 	
@@ -352,7 +385,7 @@ public final class Statistical
 	 * Returns a String representation of the data set in a csv array enclosed
 	 * with hard brackets.<br>
 	 * Example:<br>
-	 * {@code [3,5,8.9,14.45,28.00,40.2]}
+	 * {@code [3,5,8.9,14.45,28.0,40.2]}
 	 * @return String
 	 */
 	public String toString()
@@ -383,16 +416,18 @@ public final class Statistical
 	// as needed to run test cases.
 	public static void main(String[] args)
 	{
-		double[] data1 =  { 1.0, 4.0, 6.0, 19.0, 34 };
+		double[] data1 =  { -4.0, 1.0, 6.0, 4.0, 19.0, 34 };
 		Double[] data2 =  { 1.0, 4.0, 8.0, 6.0, 14.0, 3.0, 19.0, 20.0 };
 		
 		List<Double> list = new ArrayList<>();
-		for( int i = 5; i <= 10; i++  )
+		for( int i = 12; i >= 3; i--  )
 			list.add(new Double(i));
+		list.add(new Double(-20));
 		
 		Set<Double> set = new HashSet<>();
-		for( int i = 30; i <= 39; i++  )
+		for( int i = 30; i <= 45; i++  )
 			set.add(new Double(i));
+		set.add(new Double(145));
 		
 		Statistical stat1 = new Statistical(data1);
 		Statistical stat2 = new Statistical(data2);
@@ -402,7 +437,8 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat1.toString() );
 		System.out.println("range: " 	+ 			stat1.range() );
 		System.out.println("mean: " 	+ 			stat1.mean() );
-		System.out.println("trimmed mean(2): " 	+ 	stat1.trimmedMean(2) );
+		System.out.println("trimmed mean(1): " 	+ 	stat1.trimmedMean(1) );
+		System.out.println("trimmed mean(0.4): " + 	stat1.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat1.median() );
 		System.out.println("standard deviation: " + stat1.standardDeviation() );
 		System.out.println("coeff of variation: " + stat1.coefficientOfVariation() );
@@ -413,7 +449,8 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat2.toString() );
 		System.out.println("range: " 	+ 			stat2.range() );
 		System.out.println("mean: " 	+ 			stat2.mean() );
-		System.out.println("trimmed mean(2): " 	+ 	stat2.trimmedMean(2) );
+		System.out.println("trimmed mean(1): " 	+ 	stat2.trimmedMean(1) );
+		System.out.println("trimmed mean(0.4): " + 	stat2.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat2.median() );
 		System.out.println("standard deviation: " + stat2.standardDeviation() );
 		System.out.println("coeff of variation: " + stat2.coefficientOfVariation() );
@@ -424,7 +461,8 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat3.toString() );
 		System.out.println("range: " 	+ 			stat3.range() );
 		System.out.println("mean: " 	+ 			stat3.mean() );
-		System.out.println("trimmed mean(2): " 	+ 	stat3.trimmedMean(2) );
+		System.out.println("trimmed mean(1): " 	+ 	stat3.trimmedMean(1) );
+		System.out.println("trimmed mean(0.4): " + 	stat3.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat3.median() );
 		System.out.println("standard deviation: " + stat3.standardDeviation() );
 		System.out.println("coeff of variation: " + stat3.coefficientOfVariation() );
@@ -435,7 +473,8 @@ public final class Statistical
 		System.out.println("Array: " 	+ 			stat4.toString() );
 		System.out.println("range: " 	+ 			stat4.range() );
 		System.out.println("mean: " 	+ 			stat4.mean() );
-		System.out.println("trimmed mean(2): " 	+ 	stat4.trimmedMean(2) );
+		System.out.println("trimmed mean(1): " 	+ 	stat4.trimmedMean(1) );
+		System.out.println("trimmed mean(0.4): " + 	stat4.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat4.median() );
 		System.out.println("standard deviation: " + stat4.standardDeviation() );
 		System.out.println("coeff of variation: " + stat4.coefficientOfVariation() );
