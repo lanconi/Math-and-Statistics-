@@ -1,2 +1,2 @@
 # Math-and-Statistics-
-Code files for Math and Statistics, written in Java
+Java class files for Math and Statistics, written in Java 8
