@@ -1,6 +1,5 @@
 package rsd.math;
 
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
@@ -108,7 +107,10 @@ public final class Statistical
 	/**
 	 * Returns the mean value x&#x0304.<br>
 	 * The mean is simply the average; sum of all elements, 
-	 * divided by number of elements.<br>
+	 * divided by number of elements.<p>
+	 * This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code mean(stat)}<br>
+	 * where stat is a vector of numeric or integer elements<p> 
 	 * @return double
 	 */
 	public double mean()
@@ -129,7 +131,12 @@ public final class Statistical
 	 * of the data set, then an IllegalArgumentException is thrown.<br>
 	 * Note that calling this method with a float or double argument, will call the overloaded
 	 * version that takes double as an argument, and you will be asking to trim by percentage,
-	 * instead of by number of elements.
+	 * instead of by number of elements.<p>
+	 * This method is similar to the <b>R language</b> call:<br>
+	 * {@code mean(stat, trim=x)}<br>
+	 * where stat is a vector of numeric or integer elements, and x is a percentage.<p>
+	 * Note that this method takes an integer parameter for number of elements to be trimmed, and
+	 * not the percentage<p> 
 	 * @param n the number of elements to be trimmed from both the lower and upper end
 	 * of the data set.
 	 * @return double
@@ -153,13 +160,16 @@ public final class Statistical
 	 * elements removed from the lower and upper end of the data set.<br>
 	 * If the percentage of elements to be trimmed is greater than 49%, 
 	 * then 49% will be used. This is because trimming more than
-	 * 49% of the data from the bottom and the top would leave no data to evaluate.<br>
+	 * 49% of the data from the bottom and the top would leave no data to evaluate.<p>
 	 * Example: to trim 14 percent of the data elements from the lower and upper end of the
 	 * data set, a valid call would look like this ...<br>
 	 * {@code stat.trimmedMean(0.14);}<br>
-	 * where <b>stat</b> is an instantiated object of this class with a valid data set.<p> 
+	 * where stat is an instantiated object of this class with a valid data set.<p> 
 	 * Note that calling this method with an integer argument, will call the overloaded
-	 * version that takes int as an argument.
+	 * version that takes int as an argument.<p>
+	 * This method is similar to the <b>R language</b> call:<br>
+	 * {@code mean(stat, trim=x)}<br>
+	 * where stat is a vector of numeric or integer elements, and x is a percentage.<p>
 	 * @param p the percentage of elements to be trimmed from both the lower and upper end
 	 * of the data set, expressed as a double between 0.0 and 0.49.<br>
 	 * Example: Using 0.14 would mean 14%.
@@ -180,7 +190,10 @@ public final class Statistical
 	
 	
 	/**
-	 * Returns the median value, which is the same as the 50th percentile.<br>
+	 * Returns the median value, which is the same as the 50th percentile.<p> 
+	 * This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code median(stat)}<br>
+	 * where stat is a vector of numeric or integer elements.<p> 
 	 * @return double
 	 */
 	public double median()
@@ -213,11 +226,57 @@ public final class Statistical
 	} // end median
 	
 	/**
+	 * Returns a number that is the percentile, according to the 
+	 * input value p. <br>
+	 * Input value p is a number between 0.0 and 1.0<br>
+	 * Inputting a 0.0, will return the lowest element in the array.<br>
+	 * Inputting a 1.0 will return the highest element in the array.<br><p>
+	 * This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code quantile(x,p)}<br>
+	 * where x is a vector of numeric or integer elements and p is a number
+	 * between 0.0 and 1.0.<p> 
+	 * @param p double between 0.0 and 1.0<br>
+	 * @return double
+	 */
+	public double percentile(double p)
+	{
+		// if 100%, then return the largest number in the data set
+		if( p >= 1.0 )
+			return data[data.length-1];
+		
+		// if 0% or negative number, then return lowest number
+		// in data set
+		if( p <= 0.0 )
+			return data[0];
+
+		// get the index corresponding to the percentile
+		int index = (int)(java.lang.Math.ceil(p * data.length));
+		
+		// if index corresponds to last number in data set, or exceeds
+		// the length of data set, then return last number in 
+		// data set and we are done
+		if( index >= data.length-1)
+			return data[data.length-1];
+
+		// get number in the data set corresponding to the index
+		double x = data[index];
+		
+		// get next higher number in the data set
+		double xNext = data[index+1];
+		
+		// return the average of the two numbers
+		return (x + xNext)/2;
+	}
+	
+	/**
 	 * Calculates the Variance.<p>
 	 * 
 	 * In probability theory and statistics, variance is the expectation of the 
 	 * squared deviation of a random variable from its mean, and it informally 
-	 * measures how far a set of (random) numbers are spread out from their mean.
+	 * measures how far a set of (random) numbers are spread out from their mean.<p>
+	 * This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code var(stat)}<br>
+	 * where stat is a vector of numeric or integer elements.<p> 
 	 * @return double
 	 */
 	public double variance()
@@ -228,15 +287,17 @@ public final class Statistical
 		// first, get the mean
 		double mean = mean();
 		
-		// variable to store the sum of (element - mean)^2
+		// variable to store the sum the squared deviations (element - mean)^2
 		double sigmaElementMinusMeanSquared = 0.0d;
 		
+		// sum up the squared deviations
 		for( int i = 0; i < data.length; i++ )
 		{
 			sigmaElementMinusMeanSquared += 
 					(data[i] - mean)*(data[i] - mean);
 		}
 		
+		// return the average of the squared deviations
 		return sigmaElementMinusMeanSquared / (data.length-1);
 	}
 	
@@ -251,7 +312,10 @@ public final class Statistical
  	 * A low Standard Deviation &sigma; indicates that the data points tend to be close to 
  	 * the mean (also called the expected value) of the set, while a high 
  	 * standard deviation indicates that the data points are spread out over a 
- 	 * wider range of values.
+ 	 * wider range of values.<p>
+ 	 * This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code sd(stat)}<br>
+	 * where stat is a vector of numeric or integer elements.<p> 
 	 * @return double
 	 */
 	public double standardDeviation()
@@ -260,6 +324,7 @@ public final class Statistical
 		if( data.length == 1 )
 			return 0.0d;
 		
+		// return the square root of the variance
 		return java.lang.Math.sqrt( variance() );
 	}
 	
@@ -271,7 +336,11 @@ public final class Statistical
 	 * also known as relative standard deviation (RSD), is a standardized measure of 
 	 * dispersion of a probability distribution or frequency distribution. 
 	 * It is often expressed as a percentage, and is defined as the ratio of the 
-	 * standard deviation &sigma; to the mean &#181.
+	 * standard deviation &sigma; to the mean &#181.<br>
+	 * This method just returns the coefficient of variation, not as a percentage.<p>
+	 * This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code sd(stat1)/median(stat)}<br>
+	 * where stat is a vector of numeric or integer elements.<p>
 	 * 
 	 * @return double
 	 */
@@ -440,6 +509,7 @@ public final class Statistical
 		System.out.println("trimmed mean(1): " 	+ 	stat1.trimmedMean(1) );
 		System.out.println("trimmed mean(0.4): " + 	stat1.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat1.median() );
+		System.out.println("percentile 40%: " 	+ 	stat1.percentile(.4) );		
 		System.out.println("standard deviation: " + stat1.standardDeviation() );
 		System.out.println("coeff of variation: " + stat1.coefficientOfVariation() );
 		System.out.println("variance: " 	+ 		stat1.variance() );
@@ -452,6 +522,7 @@ public final class Statistical
 		System.out.println("trimmed mean(1): " 	+ 	stat2.trimmedMean(1) );
 		System.out.println("trimmed mean(0.4): " + 	stat2.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat2.median() );
+		System.out.println("percentile 70%: " 	+ 	stat2.percentile(.7) );		
 		System.out.println("standard deviation: " + stat2.standardDeviation() );
 		System.out.println("coeff of variation: " + stat2.coefficientOfVariation() );
 		System.out.println("variance: " 	+ 		stat2.variance() );
@@ -464,6 +535,7 @@ public final class Statistical
 		System.out.println("trimmed mean(1): " 	+ 	stat3.trimmedMean(1) );
 		System.out.println("trimmed mean(0.4): " + 	stat3.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat3.median() );
+		System.out.println("percentile 70%: " 	+ 	stat3.percentile(.7) );		
 		System.out.println("standard deviation: " + stat3.standardDeviation() );
 		System.out.println("coeff of variation: " + stat3.coefficientOfVariation() );
 		System.out.println("variance: " 	+ 		stat3.variance() );
@@ -476,6 +548,7 @@ public final class Statistical
 		System.out.println("trimmed mean(1): " 	+ 	stat4.trimmedMean(1) );
 		System.out.println("trimmed mean(0.4): " + 	stat4.trimmedMean(0.4) );
 		System.out.println("median: " 	+ 			stat4.median() );
+		System.out.println("percentile 80%: " 	+ 	stat4.percentile(0.8) );		
 		System.out.println("standard deviation: " + stat4.standardDeviation() );
 		System.out.println("coeff of variation: " + stat4.coefficientOfVariation() );
 		System.out.println("variance: " 	+ 		stat4.variance() );
