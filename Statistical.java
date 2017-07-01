@@ -7,22 +7,28 @@ import java.util.Set;
 import java.util.HashSet;
 
 /**
- * Statistical is an Object Oriented Class
- * which provides some of the most commonly used
- * utility methods for performing statistical calculations.<br>
- * The statistical calculations provided are:<br>
- * mean<br>
- * trimmed mean<br>
- * median<br>
- * standard of deviation<br>
- * coefficient of variation<br>
- * variance<br>
+ * Statistical is an Object Oriented Class which provides some of the most 
+ * commonly used methods for performing statistical calculations.<br>
+ * Upon instantiating an object of this class, a copy of the data will be
+ * stored in its original order and another copy is stored in a sorted order.<br>
+ * In both cases, the data is stored as a double[]<br>
+ * The statistical calculations provided are:<p>
+ * <b>coefficient of variation</b><br>
+ * <b>interquartile range ... 25% to 75%</b><br>
+ * <b>mean</b><br>
+ * <b>mean absolute deviation</b><br>
+ * <b>median</b><br>
+ * <b>percentile</b><br>
+ * <b>range</b><br>
+ * <b>standard of deviation</b><br>
+ * <b>trimmed mean</b><br>
+ * <b>variance</b><br>
  * <p>
  * To use this class, simply instantiate a Statistical Object with a set
  * of data and then call any of the methods that performs the desired calculation.<br>
- * The original data set is not mutated and the Statistical Object can be 
- * acted upon infinite number of times and its internal data set will not be 
- * mutated.<p>
+ * The reference to the original data set is not mutated, because primitive copies were
+ * made of each element from the data set.<br>
+ * The Statistical Object can be acted upon infinite number of times <p>
  * Example:<br>
  * {@code double[] arr = new double[] { 1.0, 4.0, 6.0, 9.0, 23.0 };}<br>
  * {@code Statistical stat = new Statistical(arr); }<br>
@@ -35,15 +41,17 @@ import java.util.HashSet;
  *  	{@code List<Double>  }	<br>	
  *  	{@code Set<Double> }	<p>
  *  Internally, there are three methods used to convert the
- *  Collection types with generic indicator, into a double[], which is 
- *  the sole field of this class.<p>
+ *  Collection types with generic indicator, into two copies of double[], which are 
+ *  the sole private fields of this class.<p>
  * @author Lance Dooley, Robotic Systems Design (rsd)
  * @since 2017
  *
  */
 public final class Statistical 
 {
+	// two copies of the data
 	private double[] data;
+	private double[] data_unsorted;
 	
 	/**
 	 * Constructor for a Statistical data set of type double[].
@@ -56,16 +64,18 @@ public final class Statistical
 		
 		// create a new double[] and fill it with the double primitives 
 		// There will be no dependency or risk original array
-		double[] arr = new double[data.length];		
+		this.data 			= new double[data.length];
+		this.data_unsorted = new double[data.length];		
+
 		for( int i = 0; i < data.length; i++ )
 		{
-			arr[i] = data[i];
+			this.data [i] 			= data[i];
+			this.data_unsorted [i] 	= data[i];
+
 		}
 		
 		// sort the array
-		Arrays.sort(arr);
-		
-		this.data = arr;
+		Arrays.sort(this.data);
 	}
 	
 	/**
@@ -78,6 +88,13 @@ public final class Statistical
 			throw new IllegalArgumentException("null array passed to Statistical");
 		
 		this.data = convertDoubleArrayToPrimitiveArray(data);
+		this.data_unsorted = new double[this.data.length];
+		for( int i = 0; i < this.data.length; i++ )
+		{
+			this.data_unsorted[i] = this.data[i];
+		}
+		
+		Arrays.sort(this.data);
 	}
 	
 	/**
@@ -90,6 +107,14 @@ public final class Statistical
 			throw new IllegalArgumentException("null List passed to Statistical");
 		
 		this.data = convertListDoubleToPrimitiveArray(list);
+		
+		this.data_unsorted = new double[this.data.length];
+		for( int i = 0; i < this.data.length; i++ )
+		{
+			this.data_unsorted[i] = this.data[i];
+		}
+		
+		Arrays.sort(this.data);
 	}
 	
 	/**
@@ -102,6 +127,14 @@ public final class Statistical
 			throw new IllegalArgumentException("null Set passed to Statistical");
 		
 		this.data = convertSetDoubleToPrimitiveArray(set);
+		
+		this.data_unsorted = new double[this.data.length];
+		for( int i = 0; i < this.data.length; i++ )
+		{
+			this.data_unsorted[i] = this.data[i];
+		}
+		
+		Arrays.sort(this.data);
 	}
 	
 	/**
@@ -122,6 +155,37 @@ public final class Statistical
 		}
 		
 		return sum/data.length;
+	}
+	
+	/**
+	 * The Mean Absoluate Deviation (MAD) is a robust estimate
+	 * of variability.<br>
+	 * The MAD is the median of the absolute values of the difference 
+	 * between each element in the data array and the mean.<p>
+	 * 	This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code mad(x)}<br>
+	 * where x is a vector of numeric or integer elements<p>
+	 *
+	 * @return double
+	 */
+	public double meanAbsoluteDeviation()
+	{
+		// first, calculate the mean
+		double mean = this.mean();
+		
+		// create a new array, whose elements are the absolute
+		// value of the difference between each element and the
+		// mean for the whole data array
+		double[] absDiff = new double[data.length];
+
+		for(int i = 0; i < data.length; i++ )
+		{
+			absDiff[i] = java.lang.Math.abs(data[i] - mean );
+		}
+		
+		Statistical statTemp = new Statistical(absDiff);
+		
+		return statTemp.median();
 	}
 	
 	/**
@@ -269,6 +333,21 @@ public final class Statistical
 	}
 	
 	/**
+	 * The Interquartile Range is the difference between the
+	 * 25% and the 75%.<p>
+	 * This method is equivalent to the <b>R language</b> call:<br>
+	 * {@code IQR(x)}<br>
+	 * where x is a vector of numeric or integer elements
+	 * @return double
+	 */
+	public double interquartileRange()
+	{
+		double percent25 = percentile(.25);
+		double percent75 = percentile(.75);
+		return percent75 - percent25;
+	}
+	
+	/**
 	 * Calculates the Variance.<p>
 	 * 
 	 * In probability theory and statistics, variance is the expectation of the 
@@ -369,8 +448,6 @@ public final class Statistical
 			arr[i] = array[i];
 		}
 		
-		Arrays.sort(arr);
-
 		return arr;
 	}
 	
@@ -394,9 +471,7 @@ public final class Statistical
 		{
 			arr[i] = list.get(i);
 		}
-		
-		Arrays.sort(arr);
-		
+				
 		return arr;
 	}
 	
@@ -422,9 +497,7 @@ public final class Statistical
 		{
 			arrPrimitive[i] = arr[i];
 		}
-		
-		Arrays.sort(arrPrimitive);
-		
+				
 		return arrPrimitive;
 	}
 	
